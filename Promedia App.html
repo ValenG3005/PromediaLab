@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PromediaApp - Calculadora Vibrante</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800;900&display=swap" rel="stylesheet">
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(255, 118, 117, 0.15) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(108, 92, 231, 0.2) 0%, transparent 40%),
+                  #F3F0FF;
+      color: #1E1B4B;
+    }
+    .pop-card {
+      background: #FFFFFF;
+      border: 3px solid #1E1B4B;
+      box-shadow: 6px 6px 0px #1E1B4B;
+      border-radius: 24px;
+    }
+    .pop-btn {
+      border: 3px solid #1E1B4B;
+      box-shadow: 4px 4px 0px #1E1B4B;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pop-btn:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 7px 7px 0px #1E1B4B;
+    }
+    .pop-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #1E1B4B;
+    }
+    .pop-input {
+      border: 2.5px solid #1E1B4B;
+      border-radius: 14px;
+      font-weight: 700;
+    }
+    .pop-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(255, 118, 226, 0.4);
+    }
+    .gradient-title {
+      background: linear-gradient(135deg, #FF007A 0%, #6C5CE7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex flex-col items-center justify-center gap-8">
+
+  <!-- CONTENEDOR PRINCIPAL CALCULADORA -->
+  <div class="max-w-xl w-full pop-card p-6 md:p-8 bg-white relative overflow-hidden">
+    
+    <!-- Elementos Decorativos -->
+    <div class="absolute -top-10 -right-10 w-28 h-28 bg-[#FFD166] rounded-full border-2 border-[#1E1B4B] -z-0"></div>
+
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between mb-6 relative z-10">
+      <h1 class="text-3xl font-black tracking-tight gradient-title">Promedia<span class="text-[#1E1B4B]">!</span></h1>
+      <span id="stepBadge" class="bg-[#FF007A] text-white px-4 py-1.5 rounded-full text-xs font-black pop-btn">Paso 1 de 4</span>
+    </div>
+
+    <!-- Barra de progreso con gradiente -->
+    <div class="w-full bg-gray-100 h-4 rounded-full mb-8 border-2 border-[#1E1B4B] overflow-hidden p-0.5 relative z-10">
+      <div id="progressBar" class="bg-gradient-to-r from-[#FF007A] via-[#6C5CE7] to-[#00F5D4] h-full rounded-full w-1/4 transition-all duration-300"></div>
+    </div>
+
+    <!-- PASO 1: Configurar Materia -->
+    <div id="step1" class="step-content relative z-10">
+      <div class="bg-[#FFE5EC] border-2 border-[#1E1B4B] p-4 rounded-2xl mb-6">
+        <h2 class="text-xl font-extrabold mb-1 text-[#FF007A]">1. ¿Qué asignatura calcularemos?</h2>
+        <p class="text-xs text-gray-700 font-bold">Define el nombre de la materia y tu meta personal (mínimo estándar: 3.5).</p>
+      </div>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-black uppercase mb-1">Nombre de la Materia</label>
+          <input type="text" id="subjectName" class="w-full p-3.5 pop-input bg-[#F8F9FA]" placeholder="Ej. Cálculo I" value="Cálculo I">
+        </div>
+        <div>
+          <label class="block text-xs font-black uppercase mb-1">Tu Promedio Meta / Deseado</label>
+          <input type="number" id="targetGrade" step="0.1" min="0" max="5" class="w-full p-3.5 pop-input bg-[#F8F9FA]" value="3.5">
+          <p class="text-xs font-bold text-gray-500 mt-1">💡 Puedes subir la meta a 4.0 o más si quieres exigirte un promedio superior.</p>
+        </div>
+      </div>
+
+      <button onclick="nextStep(2)" class="w-full mt-6 bg-[#6C5CE7] text-white font-black text-lg py-3.5 px-6 rounded-2xl pop-btn hover:bg-[#5b4bc4]">
+        Continuar a Porcentajes →
+      </button>
+    </div>
+
+    <!-- PASO 2: Porcentajes -->
+    <div id="step2" class="step-content hidden relative z-10">
+      <div class="bg-[#E0AFA0]/20 border-2 border-[#1E1B4B] p-4 rounded-2xl mb-4">
+        <h2 class="text-xl font-extrabold mb-1 text-[#6C5CE7]">2. Distribución de Porcentajes</h2>
+        <p class="text-xs text-gray-700 font-bold">Configura el valor de cada nota. La suma total debe ser 100%.</p>
+      </div>
+
+      <div class="flex justify-between items-center mb-4 p-3.5 bg-[#7209B7] text-white rounded-2xl border-2 border-[#1E1B4B] pop-btn">
+        <span class="text-sm font-black">Suma de Porcentajes:</span>
+        <span id="totalPercent" class="text-xl font-black bg-[#FFD166] text-[#1E1B4B] px-3 py-0.5 rounded-lg border border-[#1E1B4B]">0% / 100%</span>
+      </div>
+
+      <div id="evaluationsContainer" class="space-y-3 max-h-56 overflow-y-auto pr-1 mb-4">
+        <!-- Filas dinámicas -->
+      </div>
+
+      <button onclick="addEvaluationRow()" class="w-full mb-6 bg-[#FFD166] text-[#1E1B4B] font-black py-2.5 px-4 rounded-xl pop-btn">
+        + Agregar otra evaluación
+      </button>
+
+      <div class="flex gap-3">
+        <button onclick="nextStep(1)" class="w-1/3 bg-gray-200 font-black py-3 px-4 rounded-2xl pop-btn">Atrás</button>
+        <button id="btnStep2Next" onclick="nextStep(3)" class="w-2/3 bg-[#6C5CE7] text-white font-black py-3 px-4 rounded-2xl pop-btn">
+          Ingresar Notas →
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 3: Notas Obtenidas -->
+    <div id="step3" class="step-content hidden relative z-10">
+      <div class="bg-[#00F5D4]/20 border-2 border-[#1E1B4B] p-4 rounded-2xl mb-4">
+        <h2 class="text-xl font-extrabold mb-1 text-[#00B894]">3. Ingresa tus Notas Sacadas</h2>
+        <p class="text-xs text-gray-700 font-bold">Escribe la nota obtenida (0.0 - 5.0). Deja en blanco las notas que aún no te han entregado.</p>
+      </div>
+
+      <div id="gradesInputContainer" class="space-y-3 max-h-60 overflow-y-auto pr-1 mb-6">
+        <!-- Inputs de notas -->
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="nextStep(2)" class="w-1/3 bg-gray-200 font-black py-3 px-4 rounded-2xl pop-btn">Atrás</button>
+        <button onclick="calculateResults()" class="w-2/3 bg-[#00F5D4] text-[#1E1B4B] font-black text-lg py-3 px-4 rounded-2xl pop-btn">
+          Generar Reporte ★
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 4: Reporte y Proyección -->
+    <div id="step4" class="step-content hidden relative z-10">
+      
+      <div class="p-4 bg-gradient-to-br from-[#7209B7] to-[#4CC9F0] text-white pop-card mb-4 text-center border-2 border-[#1E1B4B]">
+        <span id="subjectTitleDisplay" class="text-xs font-black uppercase tracking-wider bg-black/30 px-3 py-1 rounded-full">Cálculo I</span>
+        <div id="currentGradeDisplay" class="text-5xl font-black my-2 text-[#FFD166]">0.0</div>
+        <span id="evaluatedPercentBadge" class="text-xs font-black bg-white text-[#1E1B4B] px-3 py-1 rounded-md border border-[#1E1B4B]">Evaluado: 0%</span>
+      </div>
+
+      <!-- Tarjeta de Alerta Predictiva -->
+      <div id="projectionCard" class="p-4 rounded-2xl pop-card mb-4 bg-white border-2 border-[#1E1B4B]">
+        <h3 id="projectionTitle" class="font-black text-sm mb-1 text-[#1E1B4B]">Meta requerida (3.5):</h3>
+        <p id="projectionMessage" class="text-sm font-bold">Calculando...</p>
+      </div>
+
+      <!-- Desglose Recomendado de Notas Restantes -->
+      <div id="recommendedGradesCard" class="p-4 bg-[#FFD166]/30 border-2 border-[#1E1B4B] rounded-2xl mb-4 hidden">
+        <h4 class="font-black text-xs uppercase mb-2 text-[#1E1B4B]">📌 Para lograr tu meta, te sugerimos estas notas:</h4>
+        <div id="recommendedList" class="space-y-1.5 text-xs font-bold"></div>
+      </div>
+
+      <!-- Simulador Interactivo -->
+      <div id="simulatorContainer" class="p-4 bg-white pop-card mb-6 hidden border-2 border-[#1E1B4B]">
+        <label class="block text-xs font-black uppercase tracking-wider text-gray-700 mb-2">
+          Simulador: ¿Qué pasa si sacas <span id="simulatedValue" class="text-[#FF007A] font-black text-lg">3.5</span> en las notas pendientes?
+        </label>
+        <input type="range" id="gradeSlider" min="0" max="5" step="0.1" value="3.5" class="w-full accent-[#FF007A]" oninput="updateSimulation()">
+        <div class="flex justify-between text-xs font-black text-gray-600 mt-2">
+          <span>0.0</span>
+          <span>Promedio Final Proyectado: <strong id="simulatedFinalGrade" class="text-[#7209B7] text-sm">0.0</strong></span>
+          <span>5.0</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="saveToHistoryAndReset()" class="w-full bg-[#00F5D4] text-[#1E1B4B] font-black py-3.5 px-4 rounded-2xl pop-btn text-base">
+          💾 Guardar en Historial y Nuevo Cálculo
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECCIÓN DE HISTORIAL DE NOTAS -->
+  <div id="historySection" class="max-w-xl w-full pop-card p-6 bg-white scroll-mt-6">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-black text-[#1E1B4B]">📚 Historial de Asignaturas</h3>
+      <button onclick="clearHistory()" class="text-xs font-black text-[#FF007A] bg-[#FFE5EC] px-3 py-1.5 rounded-lg border border-[#1E1B4B] hover:bg-red-100">
+        Borrar Historial
+      </button>
+    </div>
+
+    <div id="historyContainer" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+      <p id="emptyHistoryMsg" class="text-xs font-bold text-gray-500 text-center py-4">No has guardado asignaturas todavía.</p>
+    </div>
+  </div>
+
+  <script>
+    let evaluations = [
+      { name: 'Corte 1', weight: 30, grade: null },
+      { name: 'Corte 2', weight: 30, grade: null },
+      { name: 'Examen Final', weight: 40, grade: null }
+    ];
+
+    let currentSubjectData = null;
+
+    function updateWizardUI(step) {
+      document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`step${step}`).classList.remove('hidden');
+      document.getElementById('stepBadge').innerText = `Paso ${step} de 4`;
+      document.getElementById('progressBar').style.width = `${(step / 4) * 100}%`;
+    }
+
+    function nextStep(step) {
+      if (step === 2) renderStep2();
+      if (step === 3) {
+        if (!validateWeights()) return;
+        renderStep3();
+      }
+      updateWizardUI(step);
+    }
+
+    function renderStep2() {
+      const container = document.getElementById('evaluationsContainer');
+      container.innerHTML = '';
+      evaluations.forEach((item, index) => {
+        container.innerHTML += `
+          <div class="flex gap-2 items-center bg-gray-50 p-2 rounded-xl border-2 border-[#1E1B4B]">
+            <input type="text" value="${item.name}" onchange="evaluations[${index}].name = this.value" class="w-1/2 p-2 text-xs pop-input bg-white" placeholder="Evaluación">
+            <input type="number" value="${item.weight}" onchange="updateWeight(${index}, this.value)" class="w-1/3 p-2 text-xs pop-input bg-white" placeholder="%" min="1" max="100">
+            <span class="text-xs font-black">%</span>
+            <button onclick="removeEvaluation(${index})" class="bg-[#FF7675] text-white font-black px-2.5 py-1.5 rounded-lg border border-[#1E1B4B]">✕</button>
+          </div>
+        `;
+      });
+      calculateTotalWeight();
+    }
+
+    function updateWeight(index, value) {
+      evaluations[index].weight = parseFloat(value) || 0;
+      calculateTotalWeight();
+    }
+
+    function addEvaluationRow() {
+      evaluations.push({ name: `Evaluación ${evaluations.length + 1}`, weight: 0, grade: null });
+      renderStep2();
+    }
+
+    function removeEvaluation(index) {
+      if (evaluations.length > 1) {
+        evaluations.splice(index, 1);
+        renderStep2();
+      }
+    }
+
+    function calculateTotalWeight() {
+      const total = evaluations.reduce((sum, item) => sum + item.weight, 0);
+      const display = document.getElementById('totalPercent');
+      const btnNext = document.getElementById('btnStep2Next');
+
+      display.innerText = `${total}% / 100%`;
+      if (total === 100) {
+        display.className = "text-xl font-black bg-[#00F5D4] text-[#1E1B4B] px-3 py-0.5 rounded-lg border border-[#1E1B4B]";
+        btnNext.disabled = false;
+        btnNext.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        display.className = "text-xl font-black bg-[#FF7675] text-white px-3 py-0.5 rounded-lg border border-[#1E1B4B]";
+        btnNext.disabled = true;
+        btnNext.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    function validateWeights() {
+      const total = evaluations.reduce((sum, item) => sum + item.weight, 0);
+      if (total !== 100) {
+        alert("La suma de los porcentajes debe dar exactamente 100%");
+        return false;
+      }
+      return true;
+    }
+
+    function renderStep3() {
+      const container = document.getElementById('gradesInputContainer');
+      container.innerHTML = '';
+      evaluations.forEach((item, index) => {
+        container.innerHTML += `
+          <div class="flex justify-between items-center p-3 bg-white rounded-xl border-2 border-[#1E1B4B]">
+            <div>
+              <p class="font-extrabold text-xs text-[#1E1B4B]">${item.name}</p>
+              <p class="text-[10px] font-bold text-gray-500">Porcentaje: ${item.weight}%</p>
+            </div>
+            <input type="number" step="0.1" min="0" max="5" value="${item.grade !== null ? item.grade : ''}" 
+                   onchange="evaluations[${index}].grade = this.value !== '' ? parseFloat(this.value) : null" 
+                   class="w-20 p-2 text-sm pop-input text-center bg-[#F3F0FF]" placeholder="Ej. 4.0">
+          </div>
+        `;
+      });
+    }
+
+    function calculateResults() {
+      let accumulatedScore = 0;
+      let evaluatedWeight = 0;
+
+      evaluations.forEach(item => {
+        if (item.grade !== null && !isNaN(item.grade)) {
+          accumulatedScore += item.grade * (item.weight / 100);
+          evaluatedWeight += item.weight;
+        }
+      });
+
+      const subjectName = document.getElementById('subjectName').value || 'Sin nombre';
+      const targetGrade = parseFloat(document.getElementById('targetGrade').value) || 3.5;
+      const pendingWeight = 100 - evaluatedWeight;
+
+      document.getElementById('subjectTitleDisplay').innerText = subjectName;
+      document.getElementById('currentGradeDisplay').innerText = accumulatedScore.toFixed(2);
+      document.getElementById('evaluatedPercentBadge').innerText = `Porcentaje Evaluado: ${evaluatedWeight}%`;
+      document.getElementById('projectionTitle').innerText = `Meta personal impuesta: ${targetGrade.toFixed(1)}`;
+
+      const projCard = document.getElementById('projectionCard');
+      const projMsg = document.getElementById('projectionMessage');
+      const simContainer = document.getElementById('simulatorContainer');
+      const recCard = document.getElementById('recommendedGradesCard');
+      const recList = document.getElementById('recommendedList');
+
+      recList.innerHTML = '';
+
+      if (pendingWeight === 0) {
+        simContainer.classList.add('hidden');
+        recCard.classList.add('hidden');
+        if (accumulatedScore >= targetGrade) {
+          projCard.className = "p-4 rounded-2xl pop-card mb-4 bg-[#00F5D4]/30 border-2 border-[#1E1B4B]";
+          projMsg.innerText = `¡Felicidades! Finalizaste la asignatura y superaste tu meta con ${accumulatedScore.toFixed(2)}.`;
+        } else {
+          projCard.className = "p-4 rounded-2xl pop-card mb-4 bg-[#FF7675]/30 border-2 border-[#1E1B4B]";
+          projMsg.innerText = `Finalizaste la asignatura con ${accumulatedScore.toFixed(2)}, quedando por debajo de tu meta (${targetGrade}).`;
+        }
+      } else {
+        simContainer.classList.remove('hidden');
+        const requiredScoreTotal = targetGrade - accumulatedScore;
+        const requiredGradeRemaining = (requiredScoreTotal / (pendingWeight / 100));
+
+        if (requiredGradeRemaining <= 0) {
+          projCard.className = "p-4 rounded-2xl pop-card mb-4 bg-[#00F5D4]/30 border-2 border-[#1E1B4B]";
+          projMsg.innerText = `¡Genial! Ya aseguraste tu meta. Aunque saques 0.0 en el ${pendingWeight}% restante, conservarás tu meta sobre ${targetGrade}.`;
+          recCard.classList.add('hidden');
+        } else if (requiredGradeRemaining <= 5.0) {
+          projCard.className = "p-4 rounded-2xl pop-card mb-4 bg-[#FFD166]/40 border-2 border-[#1E1B4B]";
+          projMsg.innerText = `Para alcanzar tu meta de ${targetGrade}, necesitas sacar un promedio mínimo de ${requiredGradeRemaining.toFixed(2)} en el ${pendingWeight}% restante.`;
+
+          recCard.classList.remove('hidden');
+          evaluations.forEach(item => {
+            if (item.grade === null || isNaN(item.grade)) {
+              recList.innerHTML += `<div class="flex justify-between border-b border-[#1E1B4B]/20 pb-1">
+                <span>• ${item.name} (${item.weight}%):</span>
+                <span class="text-[#7209B7] font-black">${requiredGradeRemaining.toFixed(2)}</span>
+              </div>`;
+            }
+          });
+        } else {
+          projCard.className = "p-4 rounded-2xl pop-card mb-4 bg-[#FF7675]/30 border-2 border-[#1E1B4B]";
+          projMsg.innerText = `Requieres un ${requiredGradeRemaining.toFixed(2)} en el ${pendingWeight}% restante. Matemáticamente no es posible alcanzar la meta de ${targetGrade}.`;
+          recCard.classList.add('hidden');
+        }
+      }
+
+      currentSubjectData = {
+        name: subjectName,
+        finalGrade: accumulatedScore.toFixed(2),
+        target: targetGrade,
+        evaluated: evaluatedWeight,
+        date: new Date().toLocaleDateString()
+      };
+
+      window.calcState = { accumulatedScore, pendingWeight };
+      updateSimulation();
+      updateWizardUI(4);
+    }
+
+    function updateSimulation() {
+      if (!window.calcState) return;
+      const simVal = parseFloat(document.getElementById('gradeSlider').value);
+      document.getElementById('simulatedValue').innerText = simVal.toFixed(1);
+
+      const finalGrade = window.calcState.accumulatedScore + (simVal * (window.calcState.pendingWeight / 100));
+      document.getElementById('simulatedFinalGrade').innerText = finalGrade.toFixed(2);
+    }
+
+    // GUARDAR HISTORIAL, REINICIAR WIZARD Y DESPLAZAR AL HISTORIAL
+    function saveToHistoryAndReset() {
+      if (currentSubjectData) {
+        let history = JSON.parse(localStorage.getItem('promedia_history')) || [];
+        history.unshift(currentSubjectData);
+        localStorage.setItem('promedia_history', JSON.stringify(history));
+        renderHistory();
+      }
+
+      // Reiniciar estado por defecto
+      document.getElementById('subjectName').value = 'Cálculo I';
+      document.getElementById('targetGrade').value = '3.5';
+      evaluations = [
+        { name: 'Corte 1', weight: 30, grade: null },
+        { name: 'Corte 2', weight: 30, grade: null },
+        { name: 'Examen Final', weight: 40, grade: null }
+      ];
+      currentSubjectData = null;
+
+      // Volver a la pantalla de inicio (Paso 1)
+      updateWizardUI(1);
+
+      // Desplazamiento suave hacia la tarjeta del historial guardado
+      setTimeout(() => {
+        document.getElementById('historySection').scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('historyContainer');
+      const emptyMsg = document.getElementById('emptyHistoryMsg');
+      let history = JSON.parse(localStorage.getItem('promedia_history')) || [];
+
+      if (history.length === 0) {
+        emptyMsg.classList.remove('hidden');
+        container.innerHTML = '';
+        container.appendChild(emptyMsg);
+        return;
+      }
+
+      emptyMsg.classList.add('hidden');
+      container.innerHTML = '';
+
+      history.forEach((item) => {
+        const isPassed = parseFloat(item.finalGrade) >= parseFloat(item.target);
+        container.innerHTML += `
+          <div class="flex justify-between items-center p-3 rounded-xl border-2 border-[#1E1B4B] ${isPassed ? 'bg-[#00F5D4]/20' : 'bg-[#FF7675]/20'}">
+            <div>
+              <p class="font-extrabold text-sm text-[#1E1B4B]">${item.name}</p>
+              <p class="text-[10px] font-bold text-gray-600">Meta: ${item.target} | Evaluado: ${item.evaluated}%</p>
+            </div>
+            <div class="text-right">
+              <span class="text-lg font-black ${isPassed ? 'text-[#00B894]' : 'text-[#FF7675]'}">${item.finalGrade}</span>
+              <p class="text-[9px] font-bold text-gray-400">${item.date}</p>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function clearHistory() {
+      localStorage.removeItem('promedia_history');
+      renderHistory();
+    }
+
+    // Carga Inicial
+    renderStep2();
+    renderHistory();
+  </script>
+</body>
+</html>
